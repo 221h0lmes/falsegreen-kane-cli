@@ -244,7 +244,10 @@ HTML = r'''<!doctype html>
     const response = await fetch(url, {...options, cache:'no-store', signal:AbortSignal.timeout(10000)});
     let data;
     try { data = await response.json(); } catch { throw new Error('The booking service returned an unreadable response.'); }
-    if (!response.ok) throw new Error(data.error || 'The booking service is unavailable.');
+    if (!response.ok) {
+      const error = new Error(data.error || 'The booking service is unavailable.');
+      error.status = response.status; throw error;
+    }
     return {response, data};
   }
   function showResult(title, message, error=false) {
@@ -252,8 +255,57 @@ HTML = r'''<!doctype html>
     box.className = 'outcome' + (error ? ' error' : '');
     box.append(element('h3', title), element('p', message));
   }
+  function bookingLink() {
+    const link = element('a','My Bookings','secondary'); link.href='#bookings';
+    $('result').append(link);
+  }
+  let activeJob = null;
+  async function pollBooking(job) {
+    form.setAttribute('aria-busy','true');
+    showResult('Booking pending', 'Your request was accepted. We are waiting for it to be saved.');
+    $('result').append(element('p', `Reference · ${job.id}`, 'reference'));
+    const deadline = Date.now() + 60000;
+    let errors = 0;
+    try {
+      while (Date.now() < deadline) {
+        try {
+          const {data} = await request(job.status_url);
+          if (data.id !== job.id || !['pending','confirmed','failed'].includes(data.status)) {
+            throw new Error('Unexpected booking status.');
+          }
+          errors = 0;
+          if (data.status === 'confirmed') {
+            // The status API returns confirmed only after SQLite commits.
+            showResult('Booking confirmed', `${data.customer}, your table for ${data.party_size} is booked for ${data.date} at ${data.time}.`);
+          } else if (data.status === 'failed') {
+            showResult('Booking not confirmed', data.error || 'Your booking could not be saved. Please try again.', true);
+          } else {
+            await new Promise(resolve => setTimeout(resolve, 350));
+            continue;
+          }
+          $('result').append(element('p', `Reference · ${job.id}`, 'reference'));
+          bookingLink();
+          activeJob = null; $('book-button').disabled = false;
+          if (location.hash === '#bookings') loadBookings();
+          return;
+        } catch (error) {
+          if (++errors >= 3) break;
+          await new Promise(resolve => setTimeout(resolve, 750));
+        }
+      }
+      // A timeout or lost status response cannot establish a business outcome.
+      showResult('Booking pending', 'We cannot verify the outcome yet. Check this request again or look in My Bookings before booking again.');
+      $('result').append(element('p', `Reference · ${job.id}`, 'reference'));
+      const retry = element('button','Check booking status','secondary'); retry.type = 'button';
+      retry.addEventListener('click', () => pollBooking(job));
+      $('result').append(retry); bookingLink();
+    } finally {
+      form.setAttribute('aria-busy','false');
+    }
+  }
   form.addEventListener('submit', async event => {
     event.preventDefault();
+    if ($('book-button').disabled || activeJob) return;
     const booking = {customer:$('customer').value.trim(), date:$('date').value,
       time:$('time').value, party_size:Number($('party-size').value)};
     $('book-button').disabled = true; form.setAttribute('aria-busy','true');
@@ -261,16 +313,19 @@ HTML = r'''<!doctype html>
     try {
       const {response, data} = await request('/api/bookings', {method:'POST',
         headers:{'Content-Type':'application/json'}, body:JSON.stringify(booking)});
-      if (response.status !== 202) throw new Error('Unexpected response from the booking service.');
-      // BUILD defect, intentionally retained for the independent Kane reproduction:
-      // acceptance is incorrectly treated as confirmation. Backend remains real.
-      showResult('Booking confirmed', `${booking.customer}, your table for ${booking.party_size} is booked for ${booking.date} at ${booking.time}.`);
-      $('result').append(element('p', `Reference · ${data.id}`, 'reference'));
-      const link = element('a','My Bookings','secondary'); link.href='#bookings'; $('result').append(link);
+      if (response.status !== 202 || data.status !== 'pending' || typeof data.id !== 'string'
+          || !/^[a-f0-9]{32}$/.test(data.id) || data.status_url !== '/api/bookings/' + data.id) {
+        throw new Error('Unexpected response from the booking service.');
+      }
+      activeJob = data;
+      await pollBooking(data);
     } catch (error) {
-      showResult('Booking not confirmed', error.message + ' Check My Bookings before trying again.', true);
+      const rejected = [400,403,415].includes(error.status);
+      showResult(rejected ? 'Booking not confirmed' : 'Booking status unavailable',
+        error.message + ' Check My Bookings before trying again.', true);
+      bookingLink();
     } finally {
-      $('book-button').disabled = false; form.setAttribute('aria-busy','false');
+      $('book-button').disabled = activeJob !== null; form.setAttribute('aria-busy','false');
     }
   });
   let listRequest = 0;
@@ -454,7 +509,7 @@ def main():
     signal.signal(signal.SIGTERM, terminate)
     print(f"FALSE GREEN · controlled local simulation · http://127.0.0.1:{server.server_port}", flush=True)
     print(f"Local QA only — X-QA-Token: {token}", flush=True)
-    print("BUILD stage: the UI intentionally treats HTTP 202 as confirmation. No real reservations.", flush=True)
+    print("REPAIR stage: HTTP 202 stays pending until the worker reports a durable outcome. No real reservations.", flush=True)
     try:
         server.serve_forever()
     except KeyboardInterrupt:
