@@ -83,3 +83,18 @@ python3 -m unittest discover -s tests -v
 Tests use temporary databases and real worker threads. The HTTP contract runs through both the real request parser with an in-memory byte transport and real HTTP sockets on ephemeral loopback ports. Environments that prohibit sockets explicitly skip the socket suite; the parser/handler and worker suites still run. They cover durable success, one-job failure, failed-job absence from SQLite, restart persistence, storage errors, validation, concurrent acceptance, reset races, QA authentication, and local-origin protections.
 
 When Node.js is available, unittest also executes the actual inline UI script with Node's built-in VM, a small DOM harness, and controlled fetch/timer boundaries. These regression tests cover pending before terminal status, failure without premature confirmation, successful listing, duplicate-submit prevention, status retries, timeouts, and uncertain network outcomes. They explicitly skip if Node is absent; Node is an optional test tool and is not needed to run the application. Real-browser verification belongs to the controller.
+
+## Verified Kane → Sol → Kane developer workflow
+
+This repo includes the **actual Python controller source** that executed the November 17 build/repair/retest sequence, plus a sanitized evidence chain tied to the original Git commits. Kane CLI was used for three real-browser checks; the controller passed a failed Kane assertion and independent database oracle to Sol, which repaired the app. Kane then verified failure and success paths, and Astra reviewed the finished code.
+
+Read **[Verification & feature map](docs/VERIFICATION.md)** for the exact commits, Kane observations, repair handoff, repeatable checks, limitations, and optional full autonomous reproduction. The inspectable results are in [`evidence/closed_loop.json`](evidence/closed_loop.json); raw session logs and QA tokens stay private.
+
+Run the no-credit developer checks:
+
+```sh
+python3 tools/verify_chain.py
+python3 tools/quality_gate.py
+```
+
+These local checks do not launch Kane, run Codex, or change the booking database. A fresh full autonomous reproduction using [`tools/kane_autopilot_v3.py`](tools/kane_autopilot_v3.py) **does** invoke models and Kane; it is optional, requires authenticating both CLIs, and should be run against a separate empty directory. No deployment, publication, or hackathon submission is automated.

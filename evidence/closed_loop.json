@@ -1,0 +1,101 @@
+{
+  "accounting": {
+    "kane_credits_reported": 74.20863,
+    "kane_runs": 3,
+    "model_calls": 4
+  },
+  "astra": {
+    "blocking_findings": 0,
+    "raw_verdict_sha256": "b1d007de5cc6fced298a3ff996b17fff2330d028ae5bba0128e6180448a24b41",
+    "verdict": "PASS"
+  },
+  "commits": {
+    "defective": "1d39c57dee89cb177c46524de518ef6ec4577bc2",
+    "defective_app_sha256": "8fdbe0c06767188dc91b396317416ae305594142788f6a8be81e6e08b4d958ac",
+    "repaired": "372fd4d0a681be5d6600be43494b7fc107540625",
+    "repaired_app_sha256": "bc878f6c6acce57c6a701227dcdb2f27dfc2ea2cfe98def7414132d6100398ed"
+  },
+  "controller": {
+    "feedback_inputs": [
+      "bug_repro_oracle.json",
+      "kane_01_baseline-defect.stdout.txt"
+    ],
+    "feedback_output": "repair commit 372fd4d",
+    "recorded_sol_file_reads": [
+      "bug_repro_oracle.json",
+      "kane_01_baseline-defect.stdout.txt"
+    ],
+    "sol_repair_prompt_sha256": "7eb70d2e24768c5b85a87cfb3d0658dd84d2baaceeb68809a727b2100798f69c",
+    "sol_repair_response_sha256": "df6100767ab898e955f9fdf2226ccabecf62de43583f9154412e130dffbb7f9f",
+    "sol_tool_trace_sha256": "6fe425499cd01a7c0fe07eb7d09006578a0839375d221f2a980ee49d2309361a",
+    "source": "Original autonomous controller v3; installed separately from Git during the run"
+  },
+  "evidence_kind": "Derived summary of an actual local run; not a digital signature or complete Kane evidence pack",
+  "limits": [
+    "Raw authenticated Kane sessions are retained privately, not included here",
+    "Kane's baseline natural-language summary contains contradictory wording; structured browser observations are reported instead",
+    "Recorded evidence verifies the November 17 source commit, not arbitrary future edits",
+    "Commit IDs were rewritten for GitHub author-email privacy after the Kane run; original source trees and app SHA-256 were preserved"
+  ],
+  "private_source_sha256": {
+    "03_sol-repair.last.txt": "df6100767ab898e955f9fdf2226ccabecf62de43583f9154412e130dffbb7f9f",
+    "03_sol-repair.prompt.txt": "7eb70d2e24768c5b85a87cfb3d0658dd84d2baaceeb68809a727b2100798f69c",
+    "03_sol-repair.stderr.txt": "6fe425499cd01a7c0fe07eb7d09006578a0839375d221f2a980ee49d2309361a",
+    "astra_verdict.json": "b1d007de5cc6fced298a3ff996b17fff2330d028ae5bba0128e6180448a24b41"
+  },
+  "runs": [
+    {
+      "browser_observations": {
+        "failure_visible": "false",
+        "success_visible": "true"
+      },
+      "confirmed_rows": 0,
+      "fixture": "KANE-FAIL-2026",
+      "kane_credits_reported": 26.80524,
+      "kane_run_end_utc": "2026-11-17T09:57:47.472Z",
+      "kane_status": "failed",
+      "label": "baseline-defect",
+      "raw_ndjson_sha256": "ad5c6041ac9e859a1c6c3f2e7faceb53f510f00cddb2b58de9a3bd0e7bb5eebb",
+      "raw_oracle_sha256": "e06a5ca55b834836112cd2e89f3f106798a3656246a031831f440942f3179717",
+      "reason_code": "assertion_error.confirmed_product_bug",
+      "result_code": 740,
+      "worker_status": "failed"
+    },
+    {
+      "browser_observations": {
+        "failure_visible": "true",
+        "success_visible": "false"
+      },
+      "confirmed_rows": 0,
+      "fixture": "KANE-FAIL-2026",
+      "kane_credits_reported": 19.01503,
+      "kane_run_end_utc": "2026-11-17T10:02:35.682Z",
+      "kane_status": "passed",
+      "label": "after-fix-failure",
+      "raw_ndjson_sha256": "a133ebe65d1397c69058f3a53c04c77d3a3bf67fe20b5627f3a14f048be9a568",
+      "raw_oracle_sha256": "5c18a6bb622018b08edb030de91fa7a0a1ff9ebf0ea2d6ec0fa1e67d3f3a3b13",
+      "reason_code": "success.complete",
+      "result_code": 100,
+      "worker_status": "failed"
+    },
+    {
+      "browser_observations": {
+        "booking_listed": "true",
+        "listed_confirmed": "true",
+        "success_visible": "true"
+      },
+      "confirmed_rows": 1,
+      "fixture": "KANE-OK-2026",
+      "kane_credits_reported": 28.38835,
+      "kane_run_end_utc": "2026-11-17T10:04:04.442Z",
+      "kane_status": "passed",
+      "label": "after-fix-success",
+      "raw_ndjson_sha256": "d7520c77a81d504ba95caa13c3c85479ce292fe3161b7f664ddc800aa19de546",
+      "raw_oracle_sha256": "2031e9cbe94f4e4051f90ee67b45fe6352d1c68ef57a150cfaf69f45d22fa080",
+      "reason_code": "success.complete",
+      "result_code": 100,
+      "worker_status": "confirmed"
+    }
+  ],
+  "schema_version": 1
+}
