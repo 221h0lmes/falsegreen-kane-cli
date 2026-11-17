@@ -1,0 +1,10 @@
+.kane_autopilot_private/
+.kane_autopilot_workspace
+__pycache__/
+*.py[cod]
+*.sqlite3
+*.sqlite3-*
+.testmuai/
+.env
+.env.*
+.venv/
